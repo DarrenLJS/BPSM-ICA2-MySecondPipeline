@@ -2,6 +2,8 @@
 
 import subprocess
 import re
+import sys
+import glob
 from input_handler import validate_protein, validate_taxon
 from fetch_sequence import run_esearch, run_efetch
 from parse_fasta import parse_fasta
@@ -17,7 +19,7 @@ def main():
             pfam_id, pfam_name = validate_protein(pfam_input)
             break
         except Exception as e:
-            print(f"Please input a valid protein family. {e}")
+            print(f"\nPlease input a valid protein family. {e}")
 
     while True:
         email = input("Your email (needed for NCBI URL request): ").strip()
@@ -27,7 +29,7 @@ def main():
         ):
             break
         else:
-            print("Please input a valid email.")
+            print("\nPlease input a valid email.")
 
     while True:
         try:
@@ -35,17 +37,35 @@ def main():
             taxon_id, taxon_name = validate_taxon(taxon_input, email)
             break
         except Exception as e:
-            print(f"Please input a valid taxon group. {e}")
+            print(f"\nPlease input a valid taxon group. {e}")
     
-    print(f"Your protein family: {pfam_name}\tPfam ID: {pfam_id}")
-    print(f"Your taxon group: {taxon_name}\tTaxon ID: {taxon_id}")
+    print(f"\nSuccess! Your protein family: {pfam_name}\tPfam ID: {pfam_id}")
+    print(f"Success! Your taxon group: {taxon_name}\tTaxon ID: {taxon_id}\n")
+    
+    print("Searching NCBI Protein...")
+    ids_list = run_esearch(pfam_name, taxon_id, email)
+    if not ids_list:
+        sys.exit("\nNo UIDs could be retrieved from NCBI Protein! Please try again.")
 
-    #out_dir = f"{protein_family}_{taxon_group}"
-    #subprocess.call(f"rm -rf {out_dir}")
-    #subprocess.call(f"mkdir -p {out_dir}")
+    elif len(ids_list) > 1000:
+        while True:
+            try:
+                warner = input("Your dataset contains more than 1000 protein sequences!\nAre you sure you want to continue? (y/n) ").strip().lower()
+                if warner not in ["y", "n", "yes", "no"]:
+                    raise ValueError
+                break
+            except Exception as e:
+                print("\nInvalid input.")
+        if warner in ["n", "no"]:
+            sys.exit("\nPipeline stopped!")
     
-    #ids_list = run_esearch(protein_family, taxon_group)
-    #out_fetch = run_efetch(ids_list, out_dir)
+    print("Protein UIDs successfully retrieved!")
+    out_dir = f"{pfam_name}_{taxon_name}"
+    subprocess.call(f"rm -rf {out_dir}", shell = True)
+    subprocess.call(f"mkdir -p {out_dir}", shell = True)
+    
+    print("Fetching all protein sequences in FASTA format...")
+    out_fasta = run_efetch(ids_list, out_dir, email)
     
     #records = parse_fasta(out_dir, out_fetch)
     
