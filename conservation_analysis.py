@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!.venv/bin/python3
 
 def temp_fasta(records, out_dir):
     return out_filename

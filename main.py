@@ -1,9 +1,9 @@
 #!.venv/bin/python3
 
+import json
 import subprocess
 import re
 import sys
-import glob
 from input_handler import validate_protein, validate_taxon
 from fetch_sequence import run_esearch, run_efetch
 from parse_fasta import parse_fasta
@@ -66,8 +66,13 @@ def main():
     
     print("Fetching all protein sequences in FASTA format...")
     out_fasta = run_efetch(ids_list, out_dir, email)
-    
-    #records = parse_fasta(out_dir, out_fetch)
+    print(f"FASTA sequences successfully downloaded to {out_dir}/{out_fasta}")
+
+    print(f"Parsing {out_dir}/{out_fasta}...")
+    records = parse_fasta(out_dir, out_fasta)
+    with open("test_json.json", "w") as file:
+        json.dump(records, file, indent = 2)
+    print(f"Successfully parsed {out_dir}/{out_fasta}")
     
     #out_temp_fasta = temp_fasta(records, out_dir)
     #run_clustalo(out_dir, out_temp_fasta)
