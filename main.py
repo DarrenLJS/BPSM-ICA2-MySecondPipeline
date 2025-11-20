@@ -1,5 +1,6 @@
 #!.venv/bin/python3
 
+import glob
 import json
 import subprocess
 import re
@@ -7,8 +8,8 @@ import sys
 from input_handler import validate_protein, validate_taxon
 from fetch_sequence import run_esearch, run_efetch
 from parse_fasta import parse_fasta
-from conservation_analysis import temp_fasta, run_clustalo, run_plotcon
-from scan_prosite import run_prosite_scan, parse_prosite_output
+from conservation_analysis import build_clustalo_input, run_clustalo, run_plotcon
+from scan_prosite import build_prosite_input, run_prosite_scan, parse_prosite_output
 from blast_analysis import make_blast_db, select_blast_ref, run_blast_search, parse_blast_output
 
 def main():
@@ -59,21 +60,39 @@ def main():
         if warner in ["n", "no"]:
             sys.exit("\nPipeline stopped!")
     
-    print("Protein UIDs successfully retrieved!")
+    print("Protein UIDs successfully retrieved!\n")
     out_dir = f"{pfam_name}_{taxon_name}"
     subprocess.call(f"rm -rf {out_dir}", shell = True)
     subprocess.call(f"mkdir -p {out_dir}", shell = True)
     
     print("Fetching all protein sequences in FASTA format...")
     out_fasta = run_efetch(ids_list, out_dir, email)
-    print(f"FASTA sequences successfully downloaded to {out_dir}/{out_fasta}")
+    print(f"FASTA sequences successfully downloaded to {out_fasta}\n")
 
-    print(f"Parsing {out_dir}/{out_fasta}...")
+    print(f"Parsing {out_fasta}...")
     records = parse_fasta(out_dir, out_fasta)
     with open("test_json.json", "w") as file:
         json.dump(records, file, indent = 2)
-    print(f"Successfully parsed {out_dir}/{out_fasta}")
+    print(f"Successfully parsed {out_fasta}\n")
     
+    print("Performing conservation analysis with ClustalO and Plotcon...")
+    clustalo_input = build_clustalo_input(records, out_dir)
+    clustalo_output = run_clustalo(out_dir, clustalo_input)
+    print(f"ClustalO output successfully generated! Generated {clustalo_output}")
+    plotcon_graph = run_plotcon(out_dir, clustalo_output)
+    print(f"Plotcon output successfully generated! Generated {plotcon_graph}\n")
+
+    print("Scanning protein sequences for PROSITE motifs...")
+    prosite_input = build_prosite_input(records, out_dir)
+    prosite_output = run_prosite_scan(out_dir, prosite_input)
+    print(f"PROSITE output successfully generated! Generated {prosite_output}")
+
+    #print("Running BLAST on protein sequences...")
+    #blast_db = make_blast_db(out_dir, out_fasta)
+    #blast_ref = select_blast_ref(records, out_dir)
+    #blast_output = run_blast_search(out_dir, blast_ref, blast_db)
+    #print("Successfully ran BLAST")
+
     #out_temp_fasta = temp_fasta(records, out_dir)
     #run_clustalo(out_dir, out_temp_fasta)
     #run_plotcon(out_dir)
@@ -81,12 +100,6 @@ def main():
     #out_motifs = run_prosite_scan(out_dir, out_fetch)
     #parse_prosite_output(out_dir, out_motifs)
     
-    #blastdb_name = f"{out_dir}_blastdb"
-    #make_blast_db(out_dir, out_fetch, blastdb_name)
-    #out_reference = select_blast_ref(records, out_dir)
-    #out_blast = run_blast_search(out_dir, out_reference, blastdb_name)
-    #parse_blast_output(out_dir, out_blast)
-
 
 if __name__ == "__main__":
     main()
