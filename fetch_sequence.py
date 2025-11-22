@@ -3,6 +3,10 @@
 import requests
 import sys
 
+# run_esearch() takes in 3 args: protein family name, taxon ID and email.
+# Function: Query NCBI Protein database using Entrez esearch REST API to get a list of unique IDs.
+# If query failure or no results, print error message and return an empty list.
+# Else, return a list of unique IDs.
 def run_esearch(protein_family, taxon_id, email):
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     query = f"({protein_family}) AND txid{taxon_id}[organism] NOT partial"
@@ -26,6 +30,10 @@ def run_esearch(protein_family, taxon_id, email):
     
     return ids_list
 
+# run_efetch() takes in 3 args: list of unique IDs, out_dir and email.
+# Function: With the list of unique IDs obtained from esearch, query NCBI Protein database using Entrez efetch REST API to get a raw FASTA file of all protein sequences.
+# If query failure, print error message and exit system.
+# Else, return the downloaded raw FASTA filename.
 def run_efetch(ids_list, out_dir, email):
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     ids_str = ",".join(ids_list)

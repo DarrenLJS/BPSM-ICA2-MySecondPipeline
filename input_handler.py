@@ -3,6 +3,10 @@
 import subprocess
 import requests
 
+# validate_protein() takes in an arg: a protein family string name.
+# Function: Query EBI search with search term using REST API.
+# If query failure or no results, raise an error.
+# Else, return the first Pfam ID and Pfam name.
 def validate_protein(protein_family):
     base_url = "https://www.ebi.ac.uk/ebisearch/ws/rest/pfam"
     params = {
@@ -22,6 +26,10 @@ def validate_protein(protein_family):
     pfam_name = results[0].get("id")
     return pfam_id, pfam_name
 
+# validate_taxon() takes in 2 args: a taxon group string name and email.
+# Function: Query NCBI Taxonomy database with search term using REST API.
+# If query failure or no results, raise an error.
+# Else, return the first taxon ID and taxon group name.
 def validate_taxon(taxon_group, email):
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     params_esearch = {

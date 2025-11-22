@@ -1,5 +1,8 @@
 #!.venv/bin/python3
 
+# parse_fasta() takes in 2 args: out_dir and raw FASTA filename.
+# Function: Parse the downloaded raw FASTA file with all sequences into JSON format.
+# Output: All protein sequences in JSON format.
 def parse_fasta(out_dir, fasta_filename):
     with open(f"{out_dir}/{fasta_filename}", "r") as file:
         fasta_text = file.read()
