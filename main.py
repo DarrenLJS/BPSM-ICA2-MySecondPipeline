@@ -6,6 +6,8 @@ import subprocess
 import re
 import sys
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from input_handler import validate_protein, validate_taxon
 from fetch_sequence import run_esearch, run_efetch
 from parse_fasta import parse_fasta
@@ -134,27 +136,26 @@ def main():
 
     out_prosite = f"{out_dir}_prosite"
     subprocess.call(f"mkdir -p {out_dir}/{out_prosite}", shell = True)
-    top_records = parse_clu_results(records, out_dir, out_clustalo, infoalign_results, out_prosite, scan_size)
+    top_records, top_df = parse_clu_results(records, out_dir, out_clustalo, infoalign_results, out_prosite, scan_size)
     print("Scanning protein sequences for PROSITE motifs...")
     prosite_input = build_prosite_input(top_records, out_dir, out_prosite)
     run_prosite_scan(out_dir, out_prosite, prosite_input)
     prosite_output = list(map(lambda x: x + ".patmatmotifs", prosite_input))
     print(f"PROSITE output successfully generated! Generated {len(prosite_output)} .patmatmotifs files.")
     prosite_summary_df, prosite_motifs = parse_prosite_output(out_dir, out_prosite, prosite_output)
-    print(f"Generated prosite_scan_summary.tsv! PROSITE motifs found:\n{prosite_motifs}")
+    print(f"Generated prosite_scan_summary.tsv! PROSITE motifs found:\n{prosite_motifs}\n")
 
-    #print("Running BLAST on protein sequences...")
-    #blast_db = make_blast_db(out_dir, out_fasta)
-    #blast_ref = select_blast_ref(records, out_dir)
-    #blast_output = run_blast_search(out_dir, blast_ref, blast_db)
-    #print("Successfully ran BLAST")
+    print("Running BLAST on protein sequences...")
+    blast_db = f"{out_dir}_blast"
+    subprocess.call(f"mkdir -p {out_dir}/{blast_db}", shell = True)
+    make_blast_db(out_dir, out_fasta, blast_db)
+    blast_ref = select_blast_ref(top_records, top_df, out_dir, blast_db)
+    print(f"Using {blast_ref} as BLAST reference sequence...")
+    blast_output = run_blast_search(out_dir, blast_ref, blast_db)
+    print(f"Successfully completed BLAST analysis! Generated {blast_output}")
+    blast_db = parse_blast_output(out_dir, blast_db, blast_output)
 
-    #out_temp_fasta = temp_fasta(records, out_dir)
-    #run_clustalo(out_dir, out_temp_fasta)
-    #run_plotcon(out_dir)
-
-    #out_motifs = run_prosite_scan(out_dir, out_fetch)
-    #parse_prosite_output(out_dir, out_motifs)
+    print(f"\nFull analysis successfully completed! Check {out_dir} for all outputs.\n")
     
 
 if __name__ == "__main__":
