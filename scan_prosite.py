@@ -65,7 +65,7 @@ def parse_prosite_output(out_dir, out_prosite, prosite_output_list):
     plt.close()
     
     temp_df = summary_df.copy()
-    temp_df["Start, End, Score"] = temp_df.apply(lambda x: [x["Start"], x["End"], ["Score"]], axis = 1)
+    temp_df["Start, End, Score"] = temp_df.apply(lambda x: [x["Start"], x["End"], x["Score"]], axis = 1)
     prosite_df = temp_df.pivot_table(index = "SeqName", columns = "Motif", values = "Start, End, Score", aggfunc = list, fill_value = "x")
     prosite_df.to_csv(f"{out_dir}/{out_prosite}/prosite_locations.tsv", sep = "\t", header = True, index = False)
     return summary_df, motif_counts.index.tolist()

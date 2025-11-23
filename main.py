@@ -104,12 +104,12 @@ def main():
         try:
             print(f"Please input a number for the number of sequences to be analysed with ClustalO. Maximum: {len(records)}")
             print("The top few sequences with the largest lengths will be used for conservation analysis.")
-            print("Note: The larger the number, the slower the analysis. Recommended: 1000-2000")
+            print("Note: The larger the number, the slower the analysis. Recommended: 500-1000")
             conservation_analysis_size = int(input(f"Sample size: ").strip())
             if conservation_analysis_size > len(records):
                 raise ValueError("Invalid input exceeds maximum size.")
 
-            if conservation_analysis_size > 2000:
+            if conservation_analysis_size > 1000:
                 while True:
                     try:
                         warner2 = input("\nYour input exceeds the recommended range. Are you sure you want to continue? (y/n) ").strip().lower()
