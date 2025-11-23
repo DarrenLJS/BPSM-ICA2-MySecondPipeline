@@ -200,7 +200,7 @@ def main():
     print("Running BLAST on protein sequences...")
     blast_db = f"{out_dir}_blast"
     subprocess.call(f"mkdir -p {out_dir}/{blast_db}", shell = True)
-    make_blast_db(out_dir, out_fasta, blast_db)
+    make_blast_db(out_dir, records, blast_db)
 
     # Select and construct a BLAST reference sequence FASTA file using the sequence with the highest similarity to the consensus sequence from ClustalO, through select_blast_ref().
     # select_blast_ref() takes in 4 args: Top sequences in JSON, top sequences in infoalign results, out_dir and blast_db. Output: BLAST reference sequence FASTA file.

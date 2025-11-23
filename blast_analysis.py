@@ -5,11 +5,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# make_blast_db() takes in 3 args: out_dir, raw FASTA file of all protein sequences and blast_db.
+# make_blast_db() takes in 3 args: out_dir, list of dicts of all protein sequences and blast_db.
 # Function: Run makeblastdb command line to construct a BLAST database.
+# Constructs a FASTA file containing all protein sequences.
 # Output: Custom BLAST database name.
-def make_blast_db(out_dir, fasta_filename, blast_db):
-    subprocess.call(f"makeblastdb -in {out_dir}/{fasta_filename} -dbtype prot -out {out_dir}/{blast_db}/{blast_db}", shell = True)
+def make_blast_db(out_dir, records, blast_db):
+    blast_db_input = f"{out_dir}_records.fasta"
+    with open(f"{out_dir}/{blast_db}/{blast_db_input}", "w") as file:
+        for entry in records:
+            file.write(f">{entry['uid']} {entry['description']} [{entry['species']}]\n")
+            file.write(f"{entry['sequence']}\n\n")
+    subprocess.call(f"makeblastdb -in {out_dir}/{blast_db}/{blast_db_input} -dbtype prot -out {out_dir}/{blast_db}/{blast_db}", shell = True)
 
 # select_blast_ref() takes in 4 args: Top sequences in JSON, top sequences in infoalign results, out_dir and blast_db.
 # Function: Select the sequence with the highest % similarity with the consensus sequence and save the sequence in a FASTA file.
@@ -31,7 +37,7 @@ def run_blast_search(out_dir, blastref_filename, blast_db):
     subprocess.call(f"blastp -db {out_dir}/{blast_db}/{blast_db} -query {out_dir}/{blast_db}/{blastref_filename} -outfmt 7 > {out_dir}/{blast_db}/{blast_output}", shell = True)
     return blast_output
 
-# arse_blast_output() takes in 3 args: out_dir, blast_db and BLAST output file.
+# parse_blast_output() takes in 3 args: out_dir, blast_db and BLAST output file.
 # Function: Parse BLAST output file to a pandas dataframe, and visualise BLAST output by plotting a scatterplot of BLAST hits (Alignment Length against % Identity).
 # Output: Scatterplot of BLAST hits and parsed BLAST output to pandas dataframe.
 def parse_blast_output(out_dir, blast_db, blastresults_filename):
